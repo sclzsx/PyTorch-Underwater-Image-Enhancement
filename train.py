@@ -9,6 +9,7 @@ import torch.nn as nn
 from torchvision import transforms
 
 from model import PhysicalNN
+from model_fast import PhysicalNN_fast
 from uwcc import uwcc
 import shutil
 import os
@@ -23,15 +24,16 @@ def main():
 
     lr = 0.001
     batchsize = 1
-    n_workers = 2
+    n_workers = 0
     epochs = 3000
-    ori_fd = sys.argv[1]
-    ucc_fd = sys.argv[2]
+    ori_fd = '/home/SENSETIME/sunxin/3_datasets/UIEBD/raw-890'
+    ucc_fd = '/home/SENSETIME/sunxin/3_datasets/UIEBD/reference-890'
     ori_dirs = [os.path.join(ori_fd, f) for f in os.listdir(ori_fd)]
     ucc_dirs = [os.path.join(ucc_fd, f) for f in os.listdir(ucc_fd)]
 
     #create model
-    model = PhysicalNN()
+    # model = PhysicalNN()
+    model = PhysicalNN_fast()
     model = nn.DataParallel(model)
     model = model.cuda()
     torch.backends.cudnn.benchmark = True

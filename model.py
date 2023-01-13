@@ -55,3 +55,18 @@ class PhysicalNN(nn.Module):
         t = self.tNet(torch.cat((x*0+A,x),1))
         out = ((x-A)*t + A)
         return torch.clamp(out,0.,1.)
+
+if __name__ == '__main__':
+    from ptflops import get_model_complexity_info
+    import time
+
+    with torch.no_grad():
+        net = PhysicalNN().cuda()
+
+        f, p = get_model_complexity_info(net, (3, 2048, 2048), as_strings=True, print_per_layer_stat=False, verbose=False)
+        print('FLOPs:', f, 'Parms:', p)
+
+        x = torch.randn(1, 3, 2048, 2048).cuda()
+        s = time.clock()
+        y = net(x)
+        print(y.shape, 1 / (time.clock() - s))

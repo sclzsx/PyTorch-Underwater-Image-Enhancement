@@ -8,6 +8,7 @@ import torch
 import numpy as np
 from PIL import Image
 from model import PhysicalNN
+from model_fast import PhysicalNN_fast
 import argparse
 from torchvision import transforms
 import datetime
@@ -26,6 +27,7 @@ def main(checkpoint, imgs_path, result_path):
 
     # Load model
     model = PhysicalNN()
+    # model = PhysicalNN_fast()
     model = torch.nn.DataParallel(model).to(device)
     print("=> loading trained model")
     checkpoint = torch.load(checkpoint, map_location=device)
@@ -44,8 +46,10 @@ def main(checkpoint, imgs_path, result_path):
         img_name = (imgdir.split('/')[-1]).split('.')[0]
         img = Image.open(imgdir)
         inp = testtransform(img).unsqueeze(0)
-        inp = inp.to(device)
-        out = model(inp)
+        with torch.no_grad():
+            inp = inp.to(device)
+            out = model(inp)
+            print(inp.shape, out.shape)
 
         corrected = unloader(out.cpu().squeeze(0))
         dir = '{}/results_{}'.format(result_path, checkpoint['epoch'])
@@ -59,9 +63,10 @@ def main(checkpoint, imgs_path, result_path):
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--checkpoint', help='checkpoints path', required=True)
+    parser.add_argument('--checkpoint', help='checkpoints path',
+            default='./checkpoints_ori/model_best_2842.pth.tar')
     parser.add_argument(
-            '--images', help='test images folder', default='./test_img/')
+            '--images', help='test images folder', default='./test/haze/')
     parser.add_argument(
             '--result', help='results folder', default='./results/')
     args = parser.parse_args()

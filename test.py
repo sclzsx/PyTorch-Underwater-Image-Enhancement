@@ -85,19 +85,21 @@ def main():
     do_metric = False
 
     data_dirs = [
-        './test_img/ori', 
-        './test_img/haze',
-        # './test_img/turbid/A',
-        # './test_img/turbid/B',
-        # './test_img/turbid/C',
-        # './test_img/turbid/D',
+        # 'data/test/uiebd',
+        # 'data/test/ori', 
+        'data/test/haze',
+        # 'data/test/turbid/A',
+        # 'data/test/turbid/B',
+        # 'data/test/turbid/C',
+        # 'data/test/turbid/D',
     ]
 
     models = [
-        # (PhysicalNN(), 'results/ori/ori_ep_2842.pth'),
-        # (PhysicalNN(), 'results/v0/v0_best.pth'),
-        # (PhysicalNN_fast(), 'results/v1/v1_best.pth'),
+        (PhysicalNN(), 'results/ori/ori_ep_2842.pth'),
+        (PhysicalNN(), 'results/v0/v0_best.pth'),
+        (PhysicalNN_fast(), 'results/v1/v1_best.pth'),
         (PhysicalNN_fast(), 'results/v2/v2_best.pth'),
+        (PhysicalNN_fast(), 'results/v3/v3_best.pth'),
     ]
 
     all_info = []

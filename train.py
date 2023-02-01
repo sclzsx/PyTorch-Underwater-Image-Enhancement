@@ -7,7 +7,7 @@ import torch
 import numpy as np
 import torch.nn as nn
 from torchvision import transforms
-
+import time
 from model import PhysicalNN
 from model_fast import PhysicalNN_fast
 from uwcc import uwcc
@@ -18,7 +18,8 @@ import sys
 from tensorboardX import SummaryWriter
 
 ######################### experiment configurations ######
-
+# ori_fd = '/home/SENSETIME/sunxin/3_datasets/UIEBD/raw-890'
+# ucc_fd = '/home/SENSETIME/sunxin/3_datasets/UIEBD/reference-890'
 # batchsize = 1
 # lr = 0.001
 # epochs = 300
@@ -28,7 +29,8 @@ from tensorboardX import SummaryWriter
 # pre_trained = None
 # tag = 'v0'#作者原版,只训300轮
 
-
+# ori_fd = '/home/SENSETIME/sunxin/3_datasets/UIEBD/raw-890'
+# ucc_fd = '/home/SENSETIME/sunxin/3_datasets/UIEBD/reference-890'
 # batchsize = 1
 # lr = 0.001
 # epochs = 300
@@ -38,33 +40,43 @@ from tensorboardX import SummaryWriter
 # pre_trained = None
 # tag = 'v1'#fast版,只训300轮
 
-batchsize = 1
+# ori_fd = '/home/SENSETIME/sunxin/3_datasets/UIEBD/raw-890'
+# ucc_fd = '/home/SENSETIME/sunxin/3_datasets/UIEBD/reference-890'
+# batchsize = 1
+# lr = 0.0001
+# epochs = 300
+# net = PhysicalNN_fast()
+# criterion = nn.MSELoss()
+# train_aug = False
+# pre_trained = 'results/v1/v1_best.pth'
+# tag = 'v2'#以v1_best作为初始化权重，初始学习率除以10，不保持v1的优化器状态重头训练300轮
+
+ori_fd = '/home/SENSETIME/sunxin/3_datasets/UIEBD/crop_aug_raw_256x256'
+ucc_fd = '/home/SENSETIME/sunxin/3_datasets/UIEBD/crop_aug_ref_256x256'
+batchsize = 8
 lr = 0.001
 epochs = 300
 net = PhysicalNN_fast()
 criterion = nn.MSELoss()
-# criterion = nn.L1Loss()
-train_aug = True
-# pre_trained = 'results/v1/v1_best.pth'
-pre_trained = None
-tag = 'v2'#增加随机翻转增强，其他同v1
-# tag = 'v2'#以v1_best作为初始化权重，裁剪为小图并数据增强，修改学习率、批次大小、轮数，采用L1损失，不保持v1的优化器状态重头训练
+train_aug = False
+pre_trained = 'results/v2/v2_best.pth'
+tag = 'v3'#以v2_best作为初始化权重，数据集更换为离线数据增强后的，256大小，批次大小为8，训练300轮
 
 ##########################################
 
 
-save_dir = './results/' + tag
+save_dir = 'results/' + tag
 
 if not os.path.exists(save_dir):
     os.makedirs(save_dir)
+
+torch.backends.cudnn.benchmark = True
 
 def main():
 
     best_loss = 9999.0
 
     n_workers = 0
-    ori_fd = '/home/SENSETIME/sunxin/3_datasets/UIEBD/raw-890'
-    ucc_fd = '/home/SENSETIME/sunxin/3_datasets/UIEBD/reference-890'
     ori_dirs = [os.path.join(ori_fd, f) for f in os.listdir(ori_fd)]
     ucc_dirs = [os.path.join(ucc_fd, f) for f in os.listdir(ucc_fd)]
 
@@ -75,12 +87,12 @@ def main():
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
     if pre_trained is not None:
+        print('Warning: load pretrained')
         checkpoint = torch.load(pre_trained, map_location = torch.device('cuda'))
         model.load_state_dict(checkpoint['state_dict'])
         # optimizer.load_state_dict(checkpoint['optimizer'])
 
     model = model.cuda()
-    torch.backends.cudnn.benchmark = True
 
     #load data
     trainset = uwcc(ori_dirs, ucc_dirs, train=True, train_aug=train_aug)
@@ -89,13 +101,15 @@ def main():
     writer = SummaryWriter(save_dir)
 
     #train
+    print('finish data preparing.')
     for epoch in range(epochs):
-
+        t0 = time.time()
         tloss = train(trainloader, model, optimizer, criterion, epoch)
+        t1 = time.time()
 
+        tloss = tloss.cpu().detach().data
         writer.add_scalar('loss', tloss, epoch)
-
-        print('Epoch:[{}/{}] Loss{}'.format(epoch,epochs, tloss))
+        print('Epoch:[{}/{}] Loss:{} Time:{}'.format(epoch,epochs,tloss,t1-t0))
         is_best = tloss < best_loss
         best_loss = min(tloss, best_loss)
 

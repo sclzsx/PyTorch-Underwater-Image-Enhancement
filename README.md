@@ -13,7 +13,7 @@ The current code works with NVIDIA GPU on Ubuntu. You can do testing on CPU.
     $ python test.py --checkpoint CHECKPOINTS_PATH
 For convenience, you can run the following command to quickly see the results using the trained model reported in our paper.
 
-    $ python test.py --checkpoint ./checkpoints/model_best_2842.pth.tar
+    $ python test.py --checkpoint checkpoints/model_best_2842.pth.tar
 ### Citation
 If you use this code in your research, please consider citing the following paper:
 

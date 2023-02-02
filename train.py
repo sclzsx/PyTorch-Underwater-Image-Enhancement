@@ -28,6 +28,7 @@ from tensorboardX import SummaryWriter
 # train_aug = False
 # pre_trained = None
 # tag = 'v0'#作者原版,只训300轮
+# torch.backends.cudnn.benchmark = False
 
 # ori_fd = '/home/SENSETIME/sunxin/3_datasets/UIEBD/raw-890'
 # ucc_fd = '/home/SENSETIME/sunxin/3_datasets/UIEBD/reference-890'
@@ -39,6 +40,8 @@ from tensorboardX import SummaryWriter
 # train_aug = False
 # pre_trained = None
 # tag = 'v1'#fast版,只训300轮
+# torch.backends.cudnn.benchmark = False
+# 和v0相比，模型缩小8倍，保证了增强效果
 
 # ori_fd = '/home/SENSETIME/sunxin/3_datasets/UIEBD/raw-890'
 # ucc_fd = '/home/SENSETIME/sunxin/3_datasets/UIEBD/reference-890'
@@ -50,17 +53,34 @@ from tensorboardX import SummaryWriter
 # train_aug = False
 # pre_trained = 'results/v1/v1_best.pth'
 # tag = 'v2'#以v1_best作为初始化权重，初始学习率除以10，不保持v1的优化器状态重头训练300轮
+# torch.backends.cudnn.benchmark = False
+# 比v1略微提升
 
-ori_fd = '/home/SENSETIME/sunxin/3_datasets/UIEBD/crop_aug_raw_256x256'
-ucc_fd = '/home/SENSETIME/sunxin/3_datasets/UIEBD/crop_aug_ref_256x256'
-batchsize = 8
+# ori_fd = '/home/SENSETIME/sunxin/3_datasets/UIEBD/crop_aug_raw_256x256'
+# ucc_fd = '/home/SENSETIME/sunxin/3_datasets/UIEBD/crop_aug_ref_256x256'
+# batchsize = 8
+# lr = 0.001
+# epochs = 300
+# net = PhysicalNN_fast()
+# criterion = nn.MSELoss()
+# train_aug = False
+# pre_trained = 'results/v2/v2_best.pth'
+# tag = 'v3'#以v2_best作为初始化权重，数据集更换为离线数据增强后的，256大小，批次大小为8，训练300轮
+# torch.backends.cudnn.benchmark = True
+# 效果偏亮，但损失可继续下降，待继续训练
+
+ori_fd = '/home/SENSETIME/sunxin/3_datasets/UIEBD/raw-890'
+ucc_fd = '/home/SENSETIME/sunxin/3_datasets/UIEBD/reference-890'
+batchsize = 1
 lr = 0.001
 epochs = 300
 net = PhysicalNN_fast()
-criterion = nn.MSELoss()
+criterion = nn.L1Loss()
 train_aug = False
-pre_trained = 'results/v2/v2_best.pth'
-tag = 'v3'#以v2_best作为初始化权重，数据集更换为离线数据增强后的，256大小，批次大小为8，训练300轮
+pre_trained = None
+tag = 'v4'#fast版,只训300轮,更改为L1loss，和v1做对比
+torch.backends.cudnn.benchmark = False
+# fast版中效果最佳，证明L1Loss优于MSELoss
 
 ##########################################
 
@@ -70,7 +90,6 @@ save_dir = 'results/' + tag
 if not os.path.exists(save_dir):
     os.makedirs(save_dir)
 
-torch.backends.cudnn.benchmark = True
 
 def main():
 
